@@ -1,1 +1,1 @@
-# chess
+this is a simple chess application written in java using swing
