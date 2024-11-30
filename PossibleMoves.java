@@ -1,26 +1,49 @@
 import javax.swing.*;
 public class PossibleMoves
 {
-public static boolean[][] getPossibleMoves(JButton[][] tiles,int startRowIndex,int startColumnIndex)
+public static boolean[][] getPossibleMoves(JButton[][] tiles,int startRowIndex,int startColumnIndex,KingCastling kingCastling)
 {
 boolean [][]possibleMoves=new boolean[8][8];
 String pieceName;
 pieceName=tiles[startRowIndex][startColumnIndex].getActionCommand();
+String sourceIconName=tiles[startRowIndex][startColumnIndex].getActionCommand();
+String targetIconName="";
 int destinationRowIndex,destinationColumnIndex;
+String sourceIconPieceColor=sourceIconName.substring(0,5);
+boolean pawn=false;
+if(sourceIconName.equals("blackPawn") || sourceIconName.equals("whitePawn") )
+{
+pawn=true;
+} 
 for(int e=0;e<8;e++)
 {
 destinationRowIndex=e;
 for(int f=0;f<8;f++)
 {
 destinationColumnIndex=f;
+targetIconName=tiles[destinationRowIndex][destinationColumnIndex].getActionCommand();
+String targetIconPieceColor="";
+boolean capture=false;
+if(targetIconName.equals("")==false)
+{
+capture=true;
+targetIconPieceColor=targetIconName.substring(0,5);
+}
+if(capture && targetIconPieceColor.equals(sourceIconPieceColor))
+{
+possibleMoves[destinationRowIndex][destinationColumnIndex]=false;
+continue;
+}
+/*
 if(tiles[destinationRowIndex][destinationColumnIndex].getActionCommand().equals("")==false)
 {
 possibleMoves[destinationRowIndex][destinationColumnIndex]=false;
 continue;
 }
+*/
 if(pieceName.equals("blackKing") || pieceName.equals("whiteKing"))
 {
-possibleMoves[destinationRowIndex][destinationColumnIndex]=KingMoveValidator.validateMove(startRowIndex,startColumnIndex,destinationRowIndex,destinationColumnIndex);
+possibleMoves[destinationRowIndex][destinationColumnIndex]=KingMoveValidator.validateMove(tiles,startRowIndex,startColumnIndex,destinationRowIndex,destinationColumnIndex,kingCastling);
 //king validation part ends here
 }else
 if(pieceName.equals("whiteQueen") || pieceName.equals("blackQueen"))
