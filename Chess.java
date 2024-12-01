@@ -1,3 +1,4 @@
+import com.thinking.machines.nframework.client.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -15,6 +16,7 @@ public int row1,row2,column1,column2;
 public boolean castling;
 public boolean pawnPromotion;
 }
+private char playerPieceColor;
 private boolean whiteKingMoved=false;
 private boolean rightWhiteRookMoved=false;
 private boolean leftWhiteRookMoved=false;
@@ -25,6 +27,7 @@ private boolean white=true;
 private boolean black=false;
 private KingCastling whiteKingCastling;
 private KingCastling blackKingCastling;
+private NFrameworkClient client;
 private ButtonPanel buttonPanel;
 private JPanel boardPanel;
 private JButton[][] tiles;
@@ -55,8 +58,25 @@ private ImageIcon whitePawnIcon;
 private UNDOMove undoMove;
 private boolean undoMoveValid=false;
 private int startRowIndex,startColumnIndex,destinationRowIndex,destinationColumnIndex;
-public Chess()
+private String playerName;
+private int playerNumber;
+public Chess(String playerName)
 {
+this.playerName=playerName;
+//client connected to server
+client=new NFrameworkClient();
+//now update the information of player to the connected server
+
+try
+{
+client.execute("/serverChessUpdater/initialize",this.playerName);
+playerNumber=((Double)client.execute("/serverChessUpdater/getPlayerNumber",new Object[0])).intValue();
+System.out.println("Player number : "+playerNumber);
+}catch(Throwable exception)
+{
+System.out.println("Exception : "+exception);
+}
+
 undoMove=new UNDOMove();
 whiteKingCastling=new KingCastling();
 whiteKingCastling.kingMoved=whiteKingMoved;
@@ -127,7 +147,15 @@ tileColor=lightTileColor;
 tileBorder=darkTileBorder;
 }
 }
-tile=setupBoard(e,f,tileColor,tileBorder);
+tile=null;
+if(playerNumber==1)tile=setupBoard(e,f,tileColor,tileBorder);
+else if(playerNumber==2)
+{
+tile=new JButton();
+tile.setBackground(tileColor);
+tile.setActionCommand("");
+tile.setBorder(tileBorder);
+}
 tile.addActionListener(this);
 tiles[e][f]=tile;
 boardPanel.add(tile);
@@ -144,6 +172,125 @@ container.add(boardPanel,BorderLayout.CENTER);
 container.add(buttonPanel,BorderLayout.EAST);
 setLocation(x,y);
 setVisible(true);
+
+//now passing the board state to server to get board state
+if(playerNumber==1)
+{
+playerPieceColor='w';
+//pass the ds to server for updation
+System.out.println("PLAYER 1");
+java.util.List<String> pieces=new ArrayList<>();
+for(int e=0;e<8;e++)
+{
+for(int f=0;f<8;f++)
+{
+pieces.add(tiles[e][f].getActionCommand());
+}
+}
+try
+{
+client.execute("/serverChessUpdater/populatePieces",pieces);
+setEnabled(false);
+while(true)
+{
+int count=((Double)client.execute("/serverChessUpdater/getPlayerNumber",new Object[0])).intValue();
+
+//(client.execute("/serverChessUpdater/getPlayerNumber",new Object[0])).intValue();
+System.out.print(count);
+if(count==2)
+{
+System.out.println("Count : "+count);
+setEnabled(true);
+break;
+}
+}
+}catch(Throwable exception)
+{
+System.out.println("Exception : "+exception);
+}
+
+}
+else
+{
+this.playerPieceColor='b';
+//if it's 2nd player it will get the board state DS from server
+System.out.println("PLAYER 2");
+try
+{
+java.util.List<String> pieces=(java.util.List<String>)client.execute("/serverChessUpdater/getPiecesList",new Object[0]);
+System.out.println("List Size : "+pieces.size());
+setupClientBoard(pieces);
+}catch(Throwable exception)
+{
+System.out.println("Exception : "+exception);
+}
+
+//switch on the timer
+}
+
+}
+private void setupClientBoard(java.util.List<String> piecesList)
+{
+System.out.println("setupClientBoard called");
+int e=0;
+int f=0;
+for(String pieceName:piecesList)
+{
+tiles[e][f].setActionCommand(pieceName);
+tiles[e][f].add(new JLabel(getPieceIconByName(pieceName)));
+tiles[e][f].repaint();
+tiles[e][f].revalidate();
+f++;
+if(f==8)
+{
+f=0;
+e++;
+}
+if(e==8) break;
+}//for loop ends
+}//method ends
+
+private void updateServerBoard()
+{
+ArrayList<String> piecesName=new ArrayList<>();
+for(int e=0;e<8;e++)
+{
+for(int f=0;f<8;f++)
+{
+piecesName.add(tiles[e][f].getActionCommand());
+}
+}
+try
+{
+client.execute("/serverChessUpdater/populatePieces",piecesName);
+}catch(Throwable t)
+{
+System.out.println(t.getMessage());
+}
+System.out.println("Pieces sent");
+}
+private void updateChange()
+{
+try
+{
+/*
+ArrayList<Integer> indexes=new ArrayList<>();
+indexes.add(new Integer(this.startRowIndex));
+indexes.add(new Integer(this.startColumnIndex));
+indexes.add(new Integer(this.destinationRowIndex));
+indexes.add(new Integer(this.destinationColumnIndex));
+*/
+//Integer indexes[]=new Integer[]{this.startRowIndex,this.startColumnIndex,this.destinationRowIndex,this.destinationColumnIndex};
+//client.execute("/serverChessUpdater/updateBoard",indexes);
+//System.out.println(this.startRowIndex+"/"+this.startColumnIndex+"/"+this.destinationRowIndex+"/"+this.destinationColumnIndex);
+//client.execute("/serverChessUpdater/updateBoard",new Integer(startRowIndex),new Integer(startColumnIndex),new Integer(destinationRowIndex),new Integer(destinationColumnIndex));
+client.execute("/serverChessUpdater/updateBoard",startRowIndex,startColumnIndex,destinationRowIndex,destinationColumnIndex);
+
+}catch(Throwable t)
+{
+System.out.println(t.getMessage());
+}
+System.out.println("Piece move");
 }
 private void reset()
 {
@@ -520,6 +667,7 @@ movePiece("blackRook");
 }
 }
 
+updateChange();
 //switching black/white turn
 if(white) 
 {
@@ -1046,6 +1194,10 @@ System.out.println("DONE");
 }
 public static void main(String gg[])
 {
-Chess chess=new Chess();
+if(gg.length==0)
+{
+System.out.println("Give player name as cmd line argument");
+}
+Chess chess=new Chess(gg[0]);
 }
 }
