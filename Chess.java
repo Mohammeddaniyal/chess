@@ -6,6 +6,7 @@ import java.awt.event.*;
 import java.util.*;
 public class Chess extends JFrame implements ActionListener
 {
+private Map<String,Object> chessGameState;
 class UNDOMove
 {
 public JButton tile1,tile2;
@@ -16,6 +17,7 @@ public int row1,row2,column1,column2;
 public boolean castling;
 public boolean pawnPromotion;
 }
+private javax.swing.Timer timer;
 private char playerPieceColor;
 private boolean whiteKingMoved=false;
 private boolean rightWhiteRookMoved=false;
@@ -60,6 +62,7 @@ private boolean undoMoveValid=false;
 private int startRowIndex,startColumnIndex,destinationRowIndex,destinationColumnIndex;
 private String playerName;
 private int playerNumber;
+private String uuid;
 public Chess(String playerName)
 {
 this.playerName=playerName;
@@ -69,13 +72,21 @@ client=new NFrameworkClient();
 
 try
 {
-client.execute("/serverChessUpdater/initialize",this.playerName);
+uuid=(String)client.execute("/serverChessUpdater/initialize",this.playerName);
+//System.out.println(uuid);
+//Map<String,Object> m=new HashMap<>();
 playerNumber=((Double)client.execute("/serverChessUpdater/getPlayerNumber",new Object[0])).intValue();
+//playerNumber=((Double)m.get("playerNumber")).intValue();
+//uuid=(String)m.get("uuid");
 System.out.println("Player number : "+playerNumber);
+System.out.println("UUID : "+uuid);
 }catch(Throwable exception)
 {
 System.out.println("Exception : "+exception);
 }
+//we got player number in our hand
+
+
 
 undoMove=new UNDOMove();
 whiteKingCastling=new KingCastling();
@@ -172,7 +183,41 @@ container.add(boardPanel,BorderLayout.CENTER);
 container.add(buttonPanel,BorderLayout.EAST);
 setLocation(x,y);
 setVisible(true);
+setTitle(playerName+" - Chess");
+timer=new javax.swing.Timer(1000,new ActionListener()
+{
+public void actionPerformed(ActionEvent ev)
+{
+System.out.println("Timer started, player : "+playerNumber);
+try
+{
+/*
+boolean done=(Boolean)(client.execute("/serverChessUpdater/getDone",new Object[0]));
 
+if(done==false)
+{
+System.out.println("Done is false,opponent haven't moved yet");
+return;
+}
+*/
+Map<String,Object> chessGameState=(Map<String,Object>)client.execute("/serverChessUpdater/getChessGameState",uuid,playerName);
+if(chessGameState==null)
+{
+System.out.println("cannot update because chessgamestate is null");
+return;
+}
+updateChessGameState(chessGameState);
+}catch(Throwable exception)
+{
+System.out.println("Exception : "+exception);
+return;
+}
+System.out.println("Switching off timer acc. to condition");
+System.out.println("Enabling board");
+Chess.this.setEnabled(true);
+timer.stop();
+}
+});
 //now passing the board state to server to get board state
 if(playerNumber==1)
 {
@@ -224,11 +269,37 @@ setupClientBoard(pieces);
 {
 System.out.println("Exception : "+exception);
 }
-
+//disable board of player 2 because it's player 1 turn
+setEnabled(false);
 //switch on the timer
+timer.start();
+
 }
 
 }
+
+private void updateChessGameState(Map<String,Object> chessGameState)
+{
+String playerName=(String)(chessGameState.get("playerName"));
+int r1=((Double)chessGameState.get("sourceRow")).intValue();
+int c1=((Double)chessGameState.get("sourceColumn")).intValue();
+int r2=((Double)chessGameState.get("destinationRow")).intValue();
+int c2=((Double)chessGameState.get("destinationColumn")).intValue();
+char turn=((String)chessGameState.get("turn")).charAt(0);
+boolean castling=(Boolean)chessGameState.get("castling");
+System.out.printf("(%d,%d) -> (%d,%d) turn : %c\n",r1,c1,r2,c2,turn);
+System.out.println("Castling : "+castling);
+if(turn=='b')
+{ 
+this.black=true;
+this.white=false;
+}
+else {
+this.white=true;
+this.black=false;
+}
+}
+
 private void setupClientBoard(java.util.List<String> piecesList)
 {
 System.out.println("setupClientBoard called");
@@ -269,6 +340,7 @@ System.out.println(t.getMessage());
 }
 System.out.println("Pieces sent");
 }
+
 private void updateChange()
 {
 try
@@ -590,6 +662,16 @@ undoMove.column1=this.startColumnIndex;
 undoMove.column2=this.destinationColumnIndex;
 undoMove.castling=false;
 undoMove.pawnPromotion=false;
+chessGameState=new HashMap<>();
+chessGameState.put("playerName",playerName);
+chessGameState.put("sourceRow",this.startRowIndex);
+chessGameState.put("sourceColumn",this.startColumnIndex);
+chessGameState.put("destinationRow",this.destinationRowIndex);
+chessGameState.put("destinationColumn",this.destinationColumnIndex);
+chessGameState.put("turn",(playerPieceColor=='b'?'w':'b'));
+/*
+if(playerPieceColor=='b'){chessGameState.put("turn",'w');}else{chessGameState.put("turn",'b');}
+*/
 movePiece(sourceIconName);
 
 if(white && undoMoveValid==false)buttonPanel.setUNDOEnable(true);
@@ -667,7 +749,10 @@ movePiece("blackRook");
 }
 }
 
-updateChange();
+chessGameState.put("castling",undoMove.castling);
+
+
+//updateChange();
 //switching black/white turn
 if(white) 
 {
@@ -1188,9 +1273,22 @@ Chess.this.undoMove();
 undoButton.setEnabled(false);
 }else if(ev.getSource()==doneButton)
 {
-System.out.println("DONE");
+System.out.println("Done");
+System.out.println("setting done at server");
+try
+{
+client.execute("/serverChessUpdater/setMap",chessGameState);
+}catch(Throwable exception)
+{
+System.out.println("Exception : "+exception);
 }
+Chess.this.setEnabled(false);
+timer.start();
 }
+
+}
+
+
 }
 public static void main(String gg[])
 {

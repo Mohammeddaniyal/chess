@@ -10,14 +10,20 @@ private ServerChessFrame serverChessFrame;
 private static boolean needUpdate=false;
 public ServerChessUpdater()
 {
-System.out.println("ServerChessUpdater object created "+this);
+//System.out.println("ServerChessUpdater object created "+this);
 serverChessFrame=ServerChessFrame.getServerChessFrame();
 }
 
-@Path("/initialize")
-public void intializeClientToServer(String playerName)
+@Path("/getChessGameState")
+public Map<String,Object> getChessGameState(String uuid,String playerName)
 {
-serverChessFrame.initializeClientInfo(playerName);
+return serverChessFrame.getChessGameState(uuid,playerName);
+}
+
+@Path("/initialize")
+public String intializeClientToServer(String playerName)
+{
+return serverChessFrame.initializeClientInfo(playerName);
 }
 @Path("/getPlayerNumber")
 public int getPlayerNumber()
@@ -43,7 +49,24 @@ SwingUtilities.invokeLater(()->{
 serverChessFrame.movePiece((int)startRowIndex,(int)startColumnIndex,(int)destinationRowIndex,(int)destinationColumnIndex);
 });
 }
+@Path("/setMap")
+public void setMap(Map<String,Object> chessGameState)
+{
+serverChessFrame.setChessGameState(chessGameState);
+}
 
+@Path("/setDone")
+public void setDone()
+{
+serverChessFrame.setDone(true);
+}
+@Path("/getDone")
+public boolean getDone()
+{
+boolean b=serverChessFrame.getDone();
+serverChessFrame.setDone(false);
+return b;
+}
 @Path("/updateClientBoard")
 public ArrayList<String> updateClientBoard()
 {
