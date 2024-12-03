@@ -32,22 +32,47 @@ public void setChessGameState(Map<String,Object> chessGameState)
 {
 this.chessGameState=new HashMap<String,Object>();
 String playerName=(String)(chessGameState.get("playerName"));
+boolean gameEnd=(Boolean)(chessGameState.get("gameEnd"));
+System.out.println("Game ends : "+gameEnd);
+this.chessGameState.put("playerName",playerName);
+this.chessGameState.put("gameEnd",gameEnd);
 int r1=((Double)chessGameState.get("sourceRow")).intValue();
 int c1=((Double)chessGameState.get("sourceColumn")).intValue();
 int r2=((Double)chessGameState.get("destinationRow")).intValue();
 int c2=((Double)chessGameState.get("destinationColumn")).intValue();
 char turn=((String)chessGameState.get("turn")).charAt(0);
 boolean castling=(Boolean)chessGameState.get("castling");
+boolean pawnPromotion=(Boolean)chessGameState.get("pawnPromotion");
+boolean h=(Boolean)chessGameState.get("pawnPromotion");
+System.out.println("PAWN : "+h);
+String pawnPromotedTo="";
 System.out.printf("(%d,%d) -> (%d,%d) turn : %c\n",r1,c1,r2,c2,turn);
 System.out.println("Castling : "+castling);
-
-this.chessGameState.put("playerName",playerName);
+System.out.println("pawn promotion : "+pawnPromotion+" : pawnPromotedTo :  "+pawnPromotedTo);
 this.chessGameState.put("sourceRow",r1);
 this.chessGameState.put("sourceColumn",c1);
 this.chessGameState.put("destinationRow",r2);
 this.chessGameState.put("destinationColumn",c2);
 this.chessGameState.put("turn",turn);
 this.chessGameState.put("castling",castling);
+this.chessGameState.put("pawnPromotion",pawnPromotion);
+if(pawnPromotion)
+{
+pawnPromotedTo=(String)chessGameState.get("pawnPromotedTo");
+this.chessGameState.put("pawnPromotedTo",pawnPromotedTo);
+}
+if(castling)
+{
+int cr1=((Double)chessGameState.get("castlingRow1")).intValue();
+int cc1=((Double)chessGameState.get("castlingColumn1")).intValue();
+int cr2=((Double)chessGameState.get("castlingRow2")).intValue();
+int cc2=((Double)chessGameState.get("castlingColumn2")).intValue();
+System.out.printf("(%d,%d)->(%d,%d) : ",cr1,cc1,cr2,cc2);
+this.chessGameState.put("castlingRow1",cr1);
+this.chessGameState.put("castlingColumn1",cc1);
+this.chessGameState.put("castlingRow2",cr2);
+this.chessGameState.put("castlingColumn2",cc2);
+}
 
 this.playersInfo.remove(playerName);
 this.playersInfo.put(playerName,this.chessGameState);
@@ -66,7 +91,7 @@ else
 {
 opponentPlayerName=player1;
 }
-System.out.println("Opponent : "+opponentPlayerName);
+//System.out.println("Opponent : "+opponentPlayerName);
 Map<String,Object> chessGameState=this.playersInfo.get(opponentPlayerName);
 this.playersInfo.remove(opponentPlayerName);
 return chessGameState;

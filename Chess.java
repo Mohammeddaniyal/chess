@@ -17,6 +17,7 @@ public int row1,row2,column1,column2;
 public boolean castling;
 public boolean pawnPromotion;
 }
+private boolean madeAMove=false;
 private javax.swing.Timer timer;
 private char playerPieceColor;
 private boolean whiteKingMoved=false;
@@ -58,7 +59,7 @@ private ImageIcon whiteQueenIcon;
 private ImageIcon whiteKingIcon;
 private ImageIcon whitePawnIcon;
 private UNDOMove undoMove;
-private boolean undoMoveValid=false;
+private boolean undoMoveValid=true;
 private int startRowIndex,startColumnIndex,destinationRowIndex,destinationColumnIndex;
 private String playerName;
 private int playerNumber;
@@ -241,10 +242,10 @@ while(true)
 int count=((Double)client.execute("/serverChessUpdater/getPlayerNumber",new Object[0])).intValue();
 
 //(client.execute("/serverChessUpdater/getPlayerNumber",new Object[0])).intValue();
-System.out.print(count);
+//System.out.print(count);
 if(count==2)
 {
-System.out.println("Count : "+count);
+//System.out.println("Count : "+count);
 setEnabled(true);
 break;
 }
@@ -287,14 +288,73 @@ int r2=((Double)chessGameState.get("destinationRow")).intValue();
 int c2=((Double)chessGameState.get("destinationColumn")).intValue();
 char turn=((String)chessGameState.get("turn")).charAt(0);
 boolean castling=(Boolean)chessGameState.get("castling");
+boolean pawnPromotion=(Boolean)chessGameState.get("pawnPromotion");
+boolean gameEnd=(Boolean)chessGameState.get("gameEnd");
 System.out.printf("(%d,%d) -> (%d,%d) turn : %c\n",r1,c1,r2,c2,turn);
 System.out.println("Castling : "+castling);
+System.out.println("PAWN : "+pawnPromotion);
+
+this.sourceTile=tiles[r1][c1];
+this.targetTile=tiles[r2][c2];
+movePiece(this.sourceTile.getActionCommand());
+
+System.out.println("Piece moved");
+if(pawnPromotion)
+{
+String pawnPromotedTo=(String)chessGameState.get("pawnPromotedTo");
+System.out.println("pawnPromotion "+pawnPromotedTo);
+String color=pawnPromotedTo.substring(0,5);
+System.out.println("Color : "+color);
+//updating for pawn tile where to promote pawn
+this.destinationRowIndex=r2;
+this.destinationColumnIndex=c2;
+promotePawn(color,pawnPromotedTo,getPieceIconByName(pawnPromotedTo));
+}
+
+if(castling)
+{
+System.out.println("1");
+int cr1=((Double)chessGameState.get("castlingRow1")).intValue();
+System.out.println("2");
+int cc1=((Double)chessGameState.get("castlingColumn1")).intValue();
+System.out.println("3");
+int cr2=((Double)chessGameState.get("castlingRow2")).intValue();
+System.out.println("4");
+int cc2=((Double)chessGameState.get("castlingColumn2")).intValue();
+System.out.println("4");
+
+System.out.printf("(%d,%d)->(%d,%d) : ",cr1,cc1,cr2,cc2);
+System.out.println("Castling case");
+this.sourceTile=tiles[cr1][cc1];
+this.targetTile=tiles[cr2][cc2];
+movePiece(this.sourceTile.getActionCommand());
+System.out.println("castling done");
+}
+
+reset();
 if(turn=='b')
 { 
+if(gameEnd)
+{
+System.out.println("BLACK PLAYER, WHITE WINS");
+reset();
+JOptionPane.showMessageDialog(this,"White wins!","Game over",JOptionPane.INFORMATION_MESSAGE);
+setEnabled(false);
+return;
+}
 this.black=true;
 this.white=false;
 }
 else {
+if(gameEnd)
+{
+System.out.println("WHITE PLAYER, BLACK WINS");
+reset();
+JOptionPane.showMessageDialog(this,"Black wins!","Game over",JOptionPane.INFORMATION_MESSAGE);
+setEnabled(false);
+return;
+}
+
 this.white=true;
 this.black=false;
 }
@@ -664,30 +724,33 @@ undoMove.castling=false;
 undoMove.pawnPromotion=false;
 chessGameState=new HashMap<>();
 chessGameState.put("playerName",playerName);
+chessGameState.put("gameEnd",false);
 chessGameState.put("sourceRow",this.startRowIndex);
 chessGameState.put("sourceColumn",this.startColumnIndex);
 chessGameState.put("destinationRow",this.destinationRowIndex);
 chessGameState.put("destinationColumn",this.destinationColumnIndex);
 chessGameState.put("turn",(playerPieceColor=='b'?'w':'b'));
-/*
-if(playerPieceColor=='b'){chessGameState.put("turn",'w');}else{chessGameState.put("turn",'b');}
-*/
-movePiece(sourceIconName);
 
-if(white && undoMoveValid==false)buttonPanel.setUNDOEnable(true);
-else if(black && undoMoveValid==true) buttonPanel.setUNDOEnable(true);
+movePiece(sourceIconName);
+buttonPanel.setDoneEnable(true);
+buttonPanel.setUNDOEnable(undoMoveValid);
+//if(white && undoMoveValid==false)buttonPanel.setUNDOEnable(true);
+//else if(black && undoMoveValid==true) buttonPanel.setUNDOEnable(true);
 this.sourceTile.setBorder(UIManager.getBorder("Button.border"));
 //pawn promotion case
 if(sourceIconName.equals("whitePawn") && this.destinationRowIndex==0)
 {
 undoMove.pawnPromotion=true;
-promotePawn("white");
+promotePawn("white",null,null);
 }
 else if(sourceIconName.equals("blackPawn") && this.destinationRowIndex==7)
 {
 undoMove.pawnPromotion=true;
-promotePawn("black");
+promotePawn("black",null,null);
 }
+
+chessGameState.put("pawnPromotion",undoMove.pawnPromotion);
+
 
 //king castling
 if(sourceIconName.equals("whiteKing"))
@@ -704,6 +767,9 @@ this.destinationColumnIndex=5;
 this.sourceTile=tiles[startRowIndex][startColumnIndex];
 this.targetTile=tiles[destinationRowIndex][destinationColumnIndex];
 movePiece("whiteRook");
+
+
+
 }
 else if(whiteKingMoved==false && destinationColumnIndex==2)
 {
@@ -750,9 +816,17 @@ movePiece("blackRook");
 }
 
 chessGameState.put("castling",undoMove.castling);
+if(undoMove.castling)
+{
+//updating chess game state for castling case
+System.out.println("Castling :");
+System.out.printf("(%d,%d)->(%d,%d) : ",this.startRowIndex,this.startColumnIndex,this.destinationRowIndex,this.destinationColumnIndex);
+chessGameState.put("castlingRow1",this.startRowIndex);
+chessGameState.put("castlingColumn1",this.startColumnIndex);
+chessGameState.put("castlingRow2",this.destinationRowIndex);
+chessGameState.put("castlingColumn2",this.destinationColumnIndex);
+}
 
-
-//updateChange();
 //switching black/white turn
 if(white) 
 {
@@ -795,6 +869,17 @@ return;
 if(CheckmateDetector.detectCheckmate(tiles,"black"))
 {
 reset();
+
+try{
+//chessGameState=new HashMap<>();
+chessGameState.remove("gameEnd");
+//chessGameState.put("playerName",playerName);
+chessGameState.put("gameEnd",true);
+client.execute("/serverChessUpdater/setMap",chessGameState);
+}catch(Throwable exception)
+{
+}
+
 JOptionPane.showMessageDialog(this,"White wins!","Game over",JOptionPane.INFORMATION_MESSAGE);
 setEnabled(false);
 return;
@@ -835,6 +920,16 @@ return;
 if(CheckmateDetector.detectCheckmate(tiles,"white"))
 {
 reset();
+try{
+//chessGameState=new HashMap<>();
+chessGameState.remove("gameEnd");
+//chessGameState.put("playerName",playerName);
+chessGameState.put("gameEnd",true);
+client.execute("/serverChessUpdater/setMap",chessGameState);
+}catch(Throwable exception)
+{
+}
+
 JOptionPane.showMessageDialog(this,"Black wins!","Game over",JOptionPane.INFORMATION_MESSAGE);
 setEnabled(false);
 return;
@@ -847,25 +942,18 @@ reset();
 }
 private void undoMove()
 {
-
+undoMoveValid=false;
+buttonPanel.setDoneEnable(false);
 if(white==false)
 {
 System.out.println("last turn was white's");
 white=true;
 black=false;
-if(undoMoveValid==false)
-{
-undoMoveValid=true;
-}
 }
 else{
 System.out.println("last turn was black's");
 white=false;
 black=true;
-if(undoMoveValid==true)
-{
-undoMoveValid=false;
-}
 }
 JButton tile1=tiles[undoMove.row1][undoMove.column1];
 JButton tile2=tiles[undoMove.row2][undoMove.column2];
@@ -912,7 +1000,7 @@ tile2=tiles[0][3];
 }
 undoMoveUpdateBoard(tile2,tile1);
 }//undo castling part ends here
-
+buttonPanel.setUNDOEnable(false);
 }
 
 private void undoMoveUpdateBoard(JButton tile1,JButton tile2)
@@ -1104,10 +1192,12 @@ return PawnMoveValidator.validateMove(startRowIndex,startColumnIndex,destination
 */
 return true;
 }
-private void promotePawn(String color)
+private void promotePawn(String color,String promotePawnTo,ImageIcon promoteIcon)
 {
 String promoteTo[]={""};
 ImageIcon image[]={null};
+if(promotePawnTo==null && promoteIcon==null)
+{
 JPanel panel=new JPanel();
 panel.setLayout(new GridLayout(4,1,5,0));
 panel.setBackground(new Color(240,240,240));
@@ -1217,6 +1307,15 @@ image[0]=blackQueenIcon;
 
 
 JOptionPane.showMessageDialog(this,panel,"Choose a piece",JOptionPane.PLAIN_MESSAGE);
+//updating chessGameState for pawn promotion
+chessGameState.put("pawnPromotedTo",promoteTo[0]);
+}
+else
+{
+promoteTo[0]=promotePawnTo;
+image[0]=promoteIcon;
+}
+System.out.println("Promote pawn to : "+promotePawnTo);
 JButton pawn=this.tiles[this.destinationRowIndex][this.destinationColumnIndex];
 pawn.removeAll();
 pawn.setActionCommand("");
@@ -1227,6 +1326,8 @@ pawn.setLayout(new BorderLayout());
 pawn.add(new JLabel(image[0]));
 pawn.repaint();
 pawn.revalidate();
+
+
 }
 
 private class ButtonPanel extends JPanel implements ActionListener
@@ -1244,6 +1345,8 @@ doneButton=new JButton(doneIcon);
 undoButton.setBounds(100+200,20,50,50);
 doneButton.setBackground(new Color(220,240,220));
 doneButton.setForeground(Color.BLACK);
+undoButton.setEnabled(false);
+doneButton.setEnabled(false);
 
 setBorder(BorderFactory.createEmptyBorder(20,10,20,10));
 setBackground(new Color(240,240,240));
@@ -1265,6 +1368,11 @@ public void setUNDOEnable(boolean enable)
 {
 undoButton.setEnabled(enable);
 }
+public void setDoneEnable(boolean enable)
+{
+doneButton.setEnabled(enable);
+}
+
 public void actionPerformed(ActionEvent ev)
 {
 if(ev.getSource()==undoButton)
@@ -1273,6 +1381,12 @@ Chess.this.undoMove();
 undoButton.setEnabled(false);
 }else if(ev.getSource()==doneButton)
 {
+//enabling undo move after a turn when a player used only one chance to undo
+//at each turn
+//resetting undo move button
+Chess.this.undoMoveValid=true;
+undoButton.setEnabled(false);
+doneButton.setEnabled(false);
 System.out.println("Done");
 System.out.println("setting done at server");
 try
@@ -1280,7 +1394,7 @@ try
 client.execute("/serverChessUpdater/setMap",chessGameState);
 }catch(Throwable exception)
 {
-System.out.println("Exception : "+exception);
+System.out.println("Exception hello : "+exception.getMessage());
 }
 Chess.this.setEnabled(false);
 timer.start();
