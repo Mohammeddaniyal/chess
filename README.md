@@ -21,12 +21,36 @@ This project is a fully functional chess game developed using **Java Swing**. It
 - **Real-Time Updates**: Ensures moves are synchronized between clients.
 - **Disconnect Handling**: Tracks and manages client disconnections.
 
+---
+
 ## **Requirements**
 - **Java Development Kit (JDK)**: Version 8 or higher.
-- **IDE/Text Editor**: Any IDE or plain text editor like Notepad.
-- **Networking Setup**: Ensure clients can connect to the server over a network.
+- **Networking Framework**: Clone and build the [NFrameworkserver](https://GitHub.com/Mohammeddaniyal/NetworkFramework.git).
+- **Gson Library**: Ensure the Gson library is available in your classpath for serialization/deserialization.
+
+---
 
 ## **Setup and Usage**
-1. Clone the repository:
+
+### **Compilation**
+
+#### **For Server**
+1. Compile with the required dependencies:
    ```bash
-   git clone <repository-url>
+   javac -classpath c:/NFramework/server/build/libs/server.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path ServerChessFrame.java and ServerChessUpdater.java
+(compile both)
+#### **For Client**
+   javac -classpath c:/NFramework/client/build/libs/client.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path Chess.java
+
+### **Compilation**
+
+#### **For Server**
+   java -classpath c:/NFramework/server/build/libs/server.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path --add-opens java.base/java.util=ALL-UNNAMED -classpath <compiled-classes-and-jar-paths> ServerChessFrame
+
+   #### **For Client**
+java  -classpath c:/NFramework/client/build/libs/client.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path --add-opens java.base/java.util=ALL-UNNAMED -classpath <compiled-classes-and-jar-paths> Chess "player name"
+
+### **Validation files**
+#### Compile
+javac *.java 
+This files are needed to be compiled, before executing the actual application.
