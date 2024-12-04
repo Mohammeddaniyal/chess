@@ -111,7 +111,10 @@ String uuid=null;
 playersCount++;
 System.out.println("Player Name : "+playerName);
 this.playersInfo.put(playerName,null);
-if(playersCount==1)
+int playerNumber=playersCount%2;
+if(playerNumber==0) playerNumber+=2;
+System.out.println("PLAYER NUMBER INTIALIZE : "+playerNumber);
+if(playerNumber==1)
 {
 System.out.println("First player");
 Map<String,String> map=new HashMap<>();
@@ -119,7 +122,7 @@ map.put("player1",playerName);
 uuid=UUID.randomUUID().toString();
 matchInfo.put(uuid,map);
 }
-else if(playersCount==2)
+else if(playerNumber==2)
 {
 
 Set<Map.Entry<String,Map<String,String>>> s;

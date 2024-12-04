@@ -74,16 +74,16 @@ client=new NFrameworkClient();
 try
 {
 uuid=(String)client.execute("/serverChessUpdater/initialize",this.playerName);
-//System.out.println(uuid);
-//Map<String,Object> m=new HashMap<>();
 playerNumber=((Double)client.execute("/serverChessUpdater/getPlayerNumber",new Object[0])).intValue();
-//playerNumber=((Double)m.get("playerNumber")).intValue();
-//uuid=(String)m.get("uuid");
+playerNumber=playerNumber%2;
 System.out.println("Player number : "+playerNumber);
+if(playerNumber==0)playerNumber+=2;
+System.out.println("Player number : "+playerNumber);
+
 System.out.println("UUID : "+uuid);
 }catch(Throwable exception)
 {
-System.out.println("Exception : "+exception);
+System.out.println("Exception (1) : "+exception);
 }
 //we got player number in our hand
 
@@ -210,7 +210,7 @@ return;
 updateChessGameState(chessGameState);
 }catch(Throwable exception)
 {
-System.out.println("Exception : "+exception);
+System.out.println("Exception (2) : "+exception);
 return;
 }
 System.out.println("Switching off timer acc. to condition");
@@ -240,19 +240,18 @@ setEnabled(false);
 while(true)
 {
 int count=((Double)client.execute("/serverChessUpdater/getPlayerNumber",new Object[0])).intValue();
-
 //(client.execute("/serverChessUpdater/getPlayerNumber",new Object[0])).intValue();
 //System.out.print(count);
-if(count==2)
+if(count%2==0)
 {
-//System.out.println("Count : "+count);
+System.out.println("Count : "+count);
 setEnabled(true);
 break;
 }
 }
 }catch(Throwable exception)
 {
-System.out.println("Exception : "+exception);
+System.out.println("Exception (3): "+exception);
 }
 
 }
@@ -268,7 +267,7 @@ System.out.println("List Size : "+pieces.size());
 setupClientBoard(pieces);
 }catch(Throwable exception)
 {
-System.out.println("Exception : "+exception);
+System.out.println("Exception (4): "+exception);
 }
 //disable board of player 2 because it's player 1 turn
 setEnabled(false);
@@ -624,13 +623,15 @@ return;
 }
 this.sourceTile=tile;
 String pieceColor=this.sourceTile.getActionCommand().substring(0,5);
-if(this.white && pieceColor.equals("black")) 
+if(playerPieceColor=='w' && pieceColor.equals("black")) 
 {
+System.out.println("ur white");
 System.out.println("white turn,Not black");
 return;
 }
-else if(this.black && pieceColor.equals("white")) 
+else if(playerPieceColor=='b' && pieceColor.equals("white")) 
 {
+System.out.println("ur black");
 System.out.println("black turn,Not white");
 return;
 }
