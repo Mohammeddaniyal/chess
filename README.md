@@ -42,19 +42,20 @@ This project is a fully functional chess game developed using **Java Swing**. It
 #### **For Client**
 ```bash
    javac -classpath c:/NFramework/client/build/libs/client.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path Chess.java
-
+```
 ### **Compilation**
 
 #### **For Server**
 ```bash
    java -classpath c:/NFramework/server/build/libs/server.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path --add-opens java.base/java.util=ALL-UNNAMED -classpath <compiled-classes-and-jar-paths> ServerChessFrame
-
+```
    #### **For Client**
 ```bash
 java  -classpath c:/NFramework/client/build/libs/client.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path --add-opens java.base/java.util=ALL-UNNAMED -classpath <compiled-classes-and-jar-paths> Chess "player name"
-
+```
 ### **Validation files**
 #### Compile
 ```bash
-javac *.java 
+javac *.java
+```
 This files are needed to be compiled, before executing the actual application.
