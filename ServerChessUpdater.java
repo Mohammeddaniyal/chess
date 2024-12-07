@@ -54,19 +54,64 @@ public void setMap(Map<String,Object> chessGameState)
 {
 serverChessFrame.setChessGameState(chessGameState);
 }
+@Path("/getAvailablePlayers")
+public ArrayList<String> getAvailablePlayers()
+{
+return serverChessFrame.getAvailablePlayers();
+}
+@Path("/login")
+public boolean login(String username,String password)
+{
+return serverChessFrame.login(username,password);
+}
+@Path("/logout")
+public void logout(String username)
+{
+serverChessFrame.logout(username);
+}
+@Path("/setBusy")
+public void setBusy(String username)
+{
+serverChessFrame.setBusy(username);
+}
+@Path("/isPlayerLeft")
+public boolean isPlayerLeft(String uuid)
+{
+return serverChessFrame.isPlayerLeft(uuid);
+}
+@Path("/quitGame")
+public void quitGame(String uuid)
+{
+serverChessFrame.quitGame(uuid);
+}
+@Path("/setAvailable")
+public void setAvailable(String username)
+{
+serverChessFrame.setAvailable(username);
+}
+@Path("/invitationReply")
+public java.util.List<String> invitationReply(String player)
+{
+return serverChessFrame.invitationReply(player);
+}
+@Path("/invitationAccepted")
+public void invitationAccepted(String from,String of)
+{
+serverChessFrame.invitationAccepted(from,of);
+}
+@Path("/sendInvitation")
+public void sendInvitation(String from,String to)
+{
+serverChessFrame.sendInvitationTo(from,to);
+}
+@Path("/areThereAnyInvitation")
+public java.util.List<String> areThereAnyInvitation(String forPlayer)
+{
+return serverChessFrame.areThereAnyInvitation(forPlayer);
+}
 
-@Path("/setDone")
-public void setDone()
-{
-serverChessFrame.setDone(true);
-}
-@Path("/getDone")
-public boolean getDone()
-{
-boolean b=serverChessFrame.getDone();
-serverChessFrame.setDone(false);
-return b;
-}
+
+
 @Path("/updateClientBoard")
 public ArrayList<String> updateClientBoard()
 {

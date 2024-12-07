@@ -64,8 +64,53 @@ private int startRowIndex,startColumnIndex,destinationRowIndex,destinationColumn
 private String playerName;
 private int playerNumber;
 private String uuid;
-public Chess(String playerName)
+private ChessStartWindow chessStartWindow;
+private javax.swing.Timer isPlayerLeftTimer;
+public Chess(ChessStartWindow chessStartWindow,String playerName)
 {
+this.chessStartWindow=chessStartWindow;
+
+isPlayerLeftTimer=new javax.swing.Timer(1000,ev->{
+try
+{
+boolean left=(Boolean)client.execute("/serverChessUpdater/isPlayerLeft",uuid);
+if(left)
+{
+System.out.println("Player left");
+//close chess frame show a dialog box player left
+timer.stop();
+((javax.swing.Timer)ev.getSource()).stop();
+Chess.this.dispose();
+chessStartWindow.setAvailable();
+chessStartWindow.setVisible(true);
+}
+}catch(Throwable t)
+{
+}
+});
+
+
+addWindowListener(new WindowAdapter()
+{
+@Override
+public void windowClosing(WindowEvent ev)
+{
+try
+{
+client.execute("/serverChessUpdater/quitGame",uuid);
+}catch(Throwable t)
+{
+System.out.println(t);
+}
+System.out.println("Closing");
+Chess.this.dispose();
+//System.exit(0);
+timer.stop();
+chessStartWindow.setAvailable();
+chessStartWindow.setVisible(true);
+}
+});
+
 this.playerName=playerName;
 //client connected to server
 client=new NFrameworkClient();
@@ -215,7 +260,8 @@ return;
 }
 System.out.println("Switching off timer acc. to condition");
 System.out.println("Enabling board");
-Chess.this.setEnabled(true);
+//Chess.this.setEnabled(true);
+setComponents(true);
 timer.stop();
 }
 });
@@ -236,7 +282,9 @@ pieces.add(tiles[e][f].getActionCommand());
 try
 {
 client.execute("/serverChessUpdater/populatePieces",pieces);
-setEnabled(false);
+//setEnabled(false);
+setComponents(false);
+
 while(true)
 {
 int count=((Double)client.execute("/serverChessUpdater/getPlayerNumber",new Object[0])).intValue();
@@ -245,7 +293,9 @@ int count=((Double)client.execute("/serverChessUpdater/getPlayerNumber",new Obje
 if(count%2==0)
 {
 System.out.println("Count : "+count);
-setEnabled(true);
+//setEnabled(true);
+setComponents(true);
+isPlayerLeftTimer.start();
 break;
 }
 }
@@ -265,19 +315,37 @@ try
 java.util.List<String> pieces=(java.util.List<String>)client.execute("/serverChessUpdater/getPiecesList",new Object[0]);
 System.out.println("List Size : "+pieces.size());
 setupClientBoard(pieces);
+isPlayerLeftTimer.start();
 }catch(Throwable exception)
 {
 System.out.println("Exception (4): "+exception);
 }
 //disable board of player 2 because it's player 1 turn
-setEnabled(false);
+
+//instead of disabling the whole board only disable components except cross button
+//setEnabled(false);
+setComponents(false);
+
+
+
 //switch on the timer
 timer.start();
 
 }
 
 }
-
+private void setComponents(boolean set)
+{
+for(int e=0;e<8;e++)
+{
+for(int f=0;f<8;f++)
+{
+tiles[e][f].setEnabled(set);
+}
+}
+//buttonPanel.setDoneEnable(set);
+//buttonPanel.setUNDOEnable(set);
+}
 private void updateChessGameState(Map<String,Object> chessGameState)
 {
 String playerName=(String)(chessGameState.get("playerName"));
@@ -338,8 +406,10 @@ if(gameEnd)
 System.out.println("BLACK PLAYER, WHITE WINS");
 reset();
 JOptionPane.showMessageDialog(this,"White wins!","Game over",JOptionPane.INFORMATION_MESSAGE);
-setEnabled(false);
-return;
+//setEnabled(false);
+setComponents(false);
+//return;
+closeChess();
 }
 this.black=true;
 this.white=false;
@@ -350,14 +420,26 @@ if(gameEnd)
 System.out.println("WHITE PLAYER, BLACK WINS");
 reset();
 JOptionPane.showMessageDialog(this,"Black wins!","Game over",JOptionPane.INFORMATION_MESSAGE);
-setEnabled(false);
-return;
+//setEnabled(false);
+setComponents(false);
+//return;
+closeChess();
 }
 
 this.white=true;
 this.black=false;
 }
 }
+
+public void closeChess()
+{
+timer.stop();
+isPlayerLeftTimer.stop();
+this.dispose();
+chessStartWindow.setAvailable();
+chessStartWindow.setVisible(true);	
+}
+
 
 private void setupClientBoard(java.util.List<String> piecesList)
 {
@@ -863,7 +945,9 @@ if(targetIconName.equals("blackKing"))
 {
 reset();
 JOptionPane.showMessageDialog(this,"White wins!","Game over",JOptionPane.INFORMATION_MESSAGE);
-setEnabled(false);
+//setEnabled(false);
+setComponents(false);
+
 return;
 }
 //checking is king in danger or not
@@ -882,8 +966,10 @@ client.execute("/serverChessUpdater/setMap",chessGameState);
 }
 
 JOptionPane.showMessageDialog(this,"White wins!","Game over",JOptionPane.INFORMATION_MESSAGE);
-setEnabled(false);
-return;
+//setEnabled(false);
+setComponents(false);
+closeChess();
+//return;
 }
 white=false;
 black=true;
@@ -915,7 +1001,9 @@ if(targetIconName.equals("whiteKing"))
 {
 reset();
 JOptionPane.showMessageDialog(this,"Black wins!","Game over",JOptionPane.INFORMATION_MESSAGE);
-setEnabled(false);
+//setEnabled(false);
+setComponents(false);
+
 return;
 }
 if(CheckmateDetector.detectCheckmate(tiles,"white"))
@@ -932,7 +1020,9 @@ client.execute("/serverChessUpdater/setMap",chessGameState);
 }
 
 JOptionPane.showMessageDialog(this,"Black wins!","Game over",JOptionPane.INFORMATION_MESSAGE);
-setEnabled(false);
+//setEnabled(false);
+setComponents(false);
+
 return;
 }
 white=true;
@@ -1397,7 +1487,8 @@ client.execute("/serverChessUpdater/setMap",chessGameState);
 {
 System.out.println("Exception hello : "+exception.getMessage());
 }
-Chess.this.setEnabled(false);
+//Chess.this.setEnabled(false);
+setComponents(false);
 timer.start();
 }
 
@@ -1407,10 +1498,27 @@ timer.start();
 }
 public static void main(String gg[])
 {
-if(gg.length==0)
+if(gg.length<2)
 {
-System.out.println("Give player name as cmd line argument");
+System.out.println("Give username and password as cmd line argument");
 }
-Chess chess=new Chess(gg[0]);
+//authenticate username and password and login
+NFrameworkClient client=new NFrameworkClient();
+boolean valid=false;
+try
+{
+valid=(Boolean)client.execute("/serverChessUpdater/login",gg[0],gg[1]);
+}catch(Throwable t)
+{
+System.out.println(t);
+valid=false;
+}
+if(valid==false) 
+{
+System.out.println("Invalid username / password");
+return;
+}
+ChessStartWindow cgw=new ChessStartWindow(gg[0],gg[1]);
+//Chess chess=new Chess(gg[0]);
 }
 }

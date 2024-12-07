@@ -10,13 +10,30 @@ public class ServerChessFrame extends JFrame implements ActionListener
 private boolean done=false;
 private java.util.List<String> piecesList;
 private Map<String,Map<String,String>> matchInfo;
+private Map<String,Boolean> matchQuit;
 private Map<String,Map<String,Object>> playersInfo;
 private Map<String,Object> chessGameState;
+private Map<String,MemberDTO> loginPlayers;
+private  Map<String,MemberDTO> availablePlayers;
+private Map<String,java.util.List<String>> invitations;
+private Map<String,java.util.List<String>> invitationsAccepted;
 private int playersCount=0;
 private NFrameworkServer server;
 private JButton[][] tiles;
 private static ServerChessFrame serverChessFrame=null;
 int startRowIndex,startColumnIndex,destinationRowIndex,destinationColumnIndex;
+private ServerChessFrame()
+{
+matchQuit=new HashMap<>();
+loginPlayers=new HashMap<>();
+invitationsAccepted=new HashMap<>();
+invitations=new HashMap<>();
+matchInfo=new HashMap<>();
+availablePlayers=new HashMap<>();
+this.piecesList=new ArrayList<>();
+this.playersInfo=new HashMap<>();
+tiles=new JButton[8][8];
+}
 public static ServerChessFrame getServerChessFrame()
 {
 if(serverChessFrame==null) 
@@ -25,9 +42,91 @@ serverChessFrame=new ServerChessFrame();
 }
 return serverChessFrame;
 }
-public void setMatch()
+public boolean login(String username,String password)
 {
+MemberDAO memberDAO=new MemberDAO();
+MemberDTO memberDTO=memberDAO.getByUsername(username);
+if(memberDTO==null) return false;
+
+if(password.equals(memberDTO.getPassword())==false) return false;
+availablePlayers.put(username,memberDTO);
+loginPlayers.put(username,memberDTO);
+return true;
 }
+public void logout(String username)
+{
+availablePlayers.remove(username);
+loginPlayers.remove(username);
+}
+public void setAvailable(String username)
+{
+playersCount--;
+availablePlayers.put(username,loginPlayers.get(username));
+}
+public void setBusy(String username)
+{
+availablePlayers.remove(username);
+}
+
+public void sendInvitationTo(String from,String to)
+{
+java.util.List<String> list=invitations.get(to);
+if(list==null)
+{
+list=new ArrayList<>();
+invitations.put(to,list);
+}
+list.add(from);
+}
+public void invitationAccepted(String from,String of)
+{
+java.util.List<String> list=invitationsAccepted.get(of);
+if(list==null) 
+{
+list=new ArrayList<>();
+invitationsAccepted.put(of,list);
+}
+list.add(from);
+}
+public java.util.List<String> invitationReply(String player)
+{
+java.util.List<String> list=invitationsAccepted.get(player);
+if(list==null) list=new ArrayList<>();
+else invitationsAccepted.remove(player);
+return list;
+}
+public java.util.List<String> areThereAnyInvitation(String forPlayer)
+{
+java.util.List<String> list=invitations.get(forPlayer);
+if(list==null) list=new ArrayList<>();
+else invitations.remove(forPlayer);
+//System.out.println(list.size());
+return list;
+}
+public boolean isPlayerLeft(String uuid)
+{
+boolean left=matchQuit.get(uuid);
+if(left)
+{
+matchQuit.remove(uuid);
+}
+return left;
+}
+public void quitGame(String uuid)
+{
+matchQuit.remove(uuid);
+matchQuit.put(uuid,true);
+}
+
+public ArrayList<String> getAvailablePlayers()
+{
+ArrayList<String> list=new ArrayList<>();
+availablePlayers.forEach((k,v)->{
+list.add(v.getUsername());
+});
+return list;
+}
+
 public void setChessGameState(Map<String,Object> chessGameState)
 {
 this.chessGameState=new HashMap<String,Object>();
@@ -97,14 +196,6 @@ this.playersInfo.remove(opponentPlayerName);
 return chessGameState;
 }
 
-public void setDone(boolean done)
-{
-this.done=done;
-}
-public boolean getDone()
-{
-return this.done;
-}
 public String initializeClientInfo(String playerName)
 {
 String uuid=null;
@@ -121,6 +212,7 @@ Map<String,String> map=new HashMap<>();
 map.put("player1",playerName);
 uuid=UUID.randomUUID().toString();
 matchInfo.put(uuid,map);
+matchQuit.put(uuid,false);
 }
 else if(playerNumber==2)
 {
@@ -164,82 +256,6 @@ for(String pieceName:this.piecesList)
 piecesList.add(pieceName);
 }
 return piecesList;
-}
-private ServerChessFrame()
-{
-matchInfo=new HashMap<>();
-this.piecesList=new ArrayList<>();
-this.playersInfo=new HashMap<>();
-tiles=new JButton[8][8];
-/*
-container=getContentPane();
-container.setLayout(new GridLayout(8,8));
-JButton tile;
-blackTile=new ImageIcon("images/lightBlack_tile.png");
-whiteTile=new ImageIcon("images/grey_tile.png");
-darkTileColor=new Color(70,70,70);
-lightTileColor=new Color(240,240,240);
-darkTileBorder=BorderFactory.createLineBorder(new Color(20,20,20),2);
-lightTileBorder=BorderFactory.createLineBorder(new Color(255,255,255),2);
-Color tileColor;
-Border tileBorder;
-blackRookIcon=new ImageIcon("images/black_rook.png");
-blackKnightIcon=new ImageIcon("images/black_knight.png");
-blackBishopIcon=new ImageIcon("images/black_bishop.png");
-blackQueenIcon=new ImageIcon("images/black_queen.png");
-blackKingIcon=new ImageIcon("images/black_king.png");
-blackPawnIcon=new ImageIcon("images/black_pawn.png");
-
-
-whiteRookIcon=new ImageIcon("images/white_rook.png");
-whiteKnightIcon=new ImageIcon("images/white_knight.png");
-whiteBishopIcon=new ImageIcon("images/white_bishop.png");
-whiteQueenIcon=new ImageIcon("images/white_queen.png");
-whiteKingIcon=new ImageIcon("images/white_king.png");
-whitePawnIcon=new ImageIcon("images/white_pawn.png");
-
-
-
-for(int e=0;e<8;e++)
-{
-for(int f=0;f<8;f++)
-{
-if(e%2==0)
-{
-if(f%2==0)
-{
- tileColor=lightTileColor;
- tileBorder=darkTileBorder;
-}
-else
-{
- tileColor=darkTileColor;
- tileBorder=lightTileBorder;
-}
-}
-else
-{
-if(f%2==0) 
-{
-tileColor=darkTileColor;
-tileBorder=lightTileBorder;
-}
-else 
-{
-tileColor=lightTileColor;
-tileBorder=darkTileBorder;
-}
-}
-tile=new JButton();
-tile.setBackground(tileColor);
-tile.setBorder(tileBorder);
-
-tile.addActionListener(this);
-tiles[e][f]=tile;
-container.add(tile);
-}
-}
-*/
 }
 public ArrayList<String> getPiecesName()
 {
