@@ -40,7 +40,7 @@ public java.util.List<String> getPiecesList()
 {
 return serverChessFrame.getPiecesList();
 }
-
+/*
 @Path("/updateBoard")
 public void updatePiece(int startRowIndex,int startColumnIndex,int destinationRowIndex,int destinationColumnIndex)
 {
@@ -49,6 +49,7 @@ SwingUtilities.invokeLater(()->{
 serverChessFrame.movePiece((int)startRowIndex,(int)startColumnIndex,(int)destinationRowIndex,(int)destinationColumnIndex);
 });
 }
+*/
 @Path("/setMap")
 public void setMap(Map<String,Object> chessGameState)
 {
@@ -111,6 +112,7 @@ return serverChessFrame.areThereAnyInvitation(forPlayer);
 }
 
 
+/*
 
 @Path("/updateClientBoard")
 public ArrayList<String> updateClientBoard()
@@ -127,7 +129,7 @@ else
 return null;
 }
 }
-
+*/
 
 
 }

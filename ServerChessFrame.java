@@ -13,17 +13,18 @@ private Map<String,Map<String,String>> matchInfo;
 private Map<String,Boolean> matchQuit;
 private Map<String,Map<String,Object>> playersInfo;
 private Map<String,Object> chessGameState;
-private Map<String,MemberDTO> loginPlayers;
-private  Map<String,MemberDTO> availablePlayers;
+private Map<String,String> users;
+private Map<String,String> loginPlayers;
+private  Map<String,String> availablePlayers;
 private Map<String,java.util.List<String>> invitations;
 private Map<String,java.util.List<String>> invitationsAccepted;
 private int playersCount=0;
 private NFrameworkServer server;
-private JButton[][] tiles;
 private static ServerChessFrame serverChessFrame=null;
 int startRowIndex,startColumnIndex,destinationRowIndex,destinationColumnIndex;
-private ServerChessFrame()
+ private ServerChessFrame()
 {
+users=new MemberDAO().getAll();
 matchQuit=new HashMap<>();
 loginPlayers=new HashMap<>();
 invitationsAccepted=new HashMap<>();
@@ -32,7 +33,6 @@ matchInfo=new HashMap<>();
 availablePlayers=new HashMap<>();
 this.piecesList=new ArrayList<>();
 this.playersInfo=new HashMap<>();
-tiles=new JButton[8][8];
 }
 public static ServerChessFrame getServerChessFrame()
 {
@@ -44,13 +44,21 @@ return serverChessFrame;
 }
 public boolean login(String username,String password)
 {
+//check if  already loggedin or not
+//if(loginPlayers.get(username)!=null) return false;
+/*
 MemberDAO memberDAO=new MemberDAO();
 MemberDTO memberDTO=memberDAO.getByUsername(username);
 if(memberDTO==null) return false;
 
 if(password.equals(memberDTO.getPassword())==false) return false;
-availablePlayers.put(username,memberDTO);
-loginPlayers.put(username,memberDTO);
+*/
+String _password=users.get(username);
+if(_password==null) return false;
+if(_password.equals(password)==false) return false;
+availablePlayers.put(username,password);
+loginPlayers.put(username,password);
+
 return true;
 }
 public void logout(String username)
@@ -122,7 +130,7 @@ public ArrayList<String> getAvailablePlayers()
 {
 ArrayList<String> list=new ArrayList<>();
 availablePlayers.forEach((k,v)->{
-list.add(v.getUsername());
+list.add(k);
 });
 return list;
 }
@@ -257,102 +265,6 @@ piecesList.add(pieceName);
 }
 return piecesList;
 }
-public ArrayList<String> getPiecesName()
-{
-ArrayList<String> piecesName=new ArrayList<>();
-for(int e=0;e<8;e++)
-{
-for(int f=0;f<8;f++)
-{
-piecesName.add(tiles[e][f].getActionCommand());
-}
-}
-return piecesName;
-}
-
-public void movePiece(int startRowIndex,int startColumnIndex,int destinationRowIndex,int destinationColumnIndex)
-{
-JButton sourceTile=tiles[startRowIndex][startColumnIndex];
-JButton targetTile=tiles[destinationRowIndex][destinationColumnIndex];
-String sourceIconName=sourceTile.getActionCommand();
-sourceTile.setActionCommand("");
-targetTile.setActionCommand("");
-targetTile.setActionCommand(sourceIconName);
-/*
-Color sourceTileColor=sourceTile.getBackground();
-Color targetTileColor=targetTile.getBackground();
-sourceTile.removeAll();
-sourceTile.revalidate();
-sourceTile.repaint();
-sourceTile.setBackground(sourceTileColor);
-targetTile.removeAll();
-targetTile.revalidate();
-targetTile.repaint();
-targetTile.setBackground(targetTileColor);
-ImageIcon pieceIcon=null;
-String pieceName="";
-if(sourceIconName.equals("blackPawn"))
-{
-pieceIcon=this.blackPawnIcon;
-pieceName="blackPawn";
-}else if(sourceIconName.equals("whitePawn"))
-{
-pieceIcon=this.whitePawnIcon;
-pieceName="whitePawn";
-}else if(sourceIconName.equals("blackRook"))
-{
-pieceIcon=this.blackRookIcon;
-pieceName="blackRook";
-}else if(sourceIconName.equals("whiteRook"))
-{
-pieceIcon=this.whiteRookIcon;
-pieceName="whiteRook";
-}else if(sourceIconName.equals("blackBishop"))
-{
-pieceIcon=this.blackBishopIcon;
-pieceName="blackBishop";
-}else if(sourceIconName.equals("whiteBishop"))
-{
-pieceIcon=this.whiteBishopIcon;
-pieceName="whiteBishop";
-}else if(sourceIconName.equals("blackKnight"))
-{
-pieceIcon=this.blackKnightIcon;
-pieceName="blackKnight";
-}else if(sourceIconName.equals("whiteKnight"))
-{
-pieceIcon=this.whiteKnightIcon;
-pieceName="whiteKnight";
-}else if(sourceIconName.equals("blackQueen"))
-{
-pieceIcon=this.blackQueenIcon;
-pieceName="blackQueen";
-}else if(sourceIconName.equals("whiteQueen"))
-{
-pieceIcon=this.whiteQueenIcon;
-pieceName="whiteQueen";
-}else if(sourceIconName.equals("blackKing"))
-{
-pieceIcon=this.blackKingIcon;
-pieceName="blackKing";
-}else if(sourceIconName.equals("whiteKing"))
-{
-pieceIcon=this.whiteKingIcon;
-pieceName="whiteKing";
-}
-
-targetTile.setLayout(new BorderLayout());
-targetTile.setActionCommand(pieceName);
-targetTile.add(new JLabel(pieceIcon));
-*/
-}
-public void setupBoard(String pieceName,int e,int f)
-{
-JButton tile=new JButton();
-tile.setActionCommand(pieceName);
-tiles[e][f]=tile;
-}//populate pieces function ends here
-
 
 public void actionPerformed(ActionEvent ev)
 {
