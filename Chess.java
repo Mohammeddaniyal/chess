@@ -1417,10 +1417,7 @@ pawn.setLayout(new BorderLayout());
 pawn.add(new JLabel(image[0]));
 pawn.repaint();
 pawn.revalidate();
-
-
 }
-
 private class ButtonPanel extends JPanel implements ActionListener
 {
 private JButton undoButton;
@@ -1519,6 +1516,5 @@ System.out.println("Invalid username / password");
 return;
 }
 ChessStartWindow cgw=new ChessStartWindow(gg[0],gg[1]);
-//Chess chess=new Chess(gg[0]);
 }
 }
