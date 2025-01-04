@@ -93,6 +93,11 @@ java -classpath path/to/client.jar:path/to/common.jar:path/to/gson.jar src.gui.C
 
 ---
 
+## **Gameplay Video**
+![Gameplay](media/video/chess_gameplay.png)
+---
+
+
 ## **Contributions**
 Contributions are welcome! If you'd like to contribute, please fork the repository, make changes, and submit a pull request.
 
