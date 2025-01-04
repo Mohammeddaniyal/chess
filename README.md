@@ -1,62 +1,104 @@
+
 # **Java Swing Chess Application**
 
 ## **Overview**
-This project is a fully functional chess game developed using **Java Swing**. It features robust gameplay mechanics and advanced features like checkmate detection, castling, undo functionality, and more. The application supports both **local play** and **networked multiplayer mode** using a custom-built networking framework.
+This project is a fully functional chess game developed using **Java Swing**. It features robust gameplay mechanics and advanced functionalities such as checkmate detection, castling, undo moves, and more. The application supports both **local play** and **networked multiplayer mode** using a custom-built networking framework.
+
+---
 
 ## **Features**
+
 ### **Core Features**
 - **Standard Chess Rules**: Implements all standard chess rules, including piece movement, check, and checkmate.
 - **Highlight Valid Tiles**: Displays valid moves for the selected piece.
 
 ### **Advanced Features**
 - **Checkmate Detection**: Automatically determines when a game ends in checkmate.
-- **Castling**: Fully functional with validation.
-- **No Self-Check Rule**: Ensures no piece move leaves the king in check.
+- **Castling**: Fully functional with proper validation.
+- **No Self-Check Rule**: Ensures no move leaves the king in check.
 - **Undo Functionality**: Allows players to revert their moves.
 - **Pawn Promotion**: Players can choose the promotion piece via a custom dialog.
 
 ### **Networking Support**
-- **Custom Networking Framework**: Allows two players to connect over a network and play seamlessly.
-- **Dynamic Matchmaking**: Matches two players based on their connection order using UUIDs.
-- **Real-Time Updates**: Ensures moves are synchronized between clients.
-- **Disconnect Handling**: Tracks and manages client disconnections.
+- **Custom Networking Framework**: Enables two players to connect over a network and play seamlessly.
+- **Dynamic Matchmaking**: Matches players based on connection order using UUIDs.
+- **Real-Time Updates**: Synchronizes moves between clients.
+- **Disconnect Handling**: Manages client disconnections gracefully.
+
+---
+
+## **Project Structure**
+
+```
+chess-main/
+├── src/               # Source code for the chess game
+│   ├── validators/    # Classes for validating moves for each chess piece
+│   ├── networking/    # Server and client classes for multiplayer functionality
+│   ├── models/        # Data Transfer Objects (DTOs) for managing game data
+│   ├── gui/           # GUI components for the chessboard and game windows
+├── resources/         # Media files (images, screenshots, and videos)
+├── README.md          # Documentation
+```
 
 ---
 
 ## **Requirements**
 - **Java Development Kit (JDK)**: Version 8 or higher.
-- **Networking Framework**: Clone and build the [NFrameworkserver](https://GitHub.com/Mohammeddaniyal/NetworkFramework.git).
-- **Gson Library**: Ensure the Gson library is available in your classpath for serialization/deserialization.
+- **Gson Library**: Required for serialization and deserialization.
+- **Networking Framework**: Clone and build the [NFrameworkserver](https://github.com/Mohammeddaniyal/NetworkFramework.git).
 
 ---
 
 ## **Setup and Usage**
 
-### **Compilation**
+### **Step 1: Clone the Repository**
+```bash
+git clone https://github.com/YourUsername/Chess.git
+cd Chess
+```
+
+### **Step 2: Compile the Code**
 
 #### **For Server**
-1. Compile with the required dependencies:
-   ```bash
-   javac -classpath c:/NFramework/server/build/libs/server.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path ServerChessFrame.java ServerChessUpdater.java
-(compile both)
+```bash
+javac -classpath path/to/server.jar:path/to/common.jar:path/to/gson.jar src/networking/ServerChessFrame.java src/networking/ServerChessUpdater.java
+```
+
 #### **For Client**
 ```bash
-   javac -classpath c:/NFramework/client/build/libs/client.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path Chess.java ChessStartWindow.java
+javac -classpath path/to/client.jar:path/to/common.jar:path/to/gson.jar src/gui/Chess.java src/gui/ChessStartWindow.java
 ```
-(Compile both)
-### **Compilation**
 
-#### **For Server**
+### **Step 3: Run the Application**
+
+#### **Start the Server**
 ```bash
-   java -classpath c:/NFramework/server/build/libs/server.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path --add-opens java.base/java.util=ALL-UNNAMED -classpath <compiled-classes-and-jar-paths> ServerChessFrame
+java -classpath path/to/server.jar:path/to/common.jar:path/to/gson.jar src.networking.ServerChessFrame
 ```
-   #### **For Client**
+
+#### **Start the Client**
 ```bash
-java  -classpath c:/NFramework/client/build/libs/client.jar;c:/NFramework/common/build/libs/common.jar;gson-jar-path --add-opens java.base/java.util=ALL-UNNAMED -classpath <compiled-classes-and-jar-paths> Chess "username" "password"
+java -classpath path/to/client.jar:path/to/common.jar:path/to/gson.jar src.gui.Chess "username" "password"
 ```
-### **Validation files**
-#### Compile
-```bash
-javac *.java
-```
-This files are needed to be compiled, before executing the actual application.
+
+---
+
+## **Gameplay Screenshots**
+![Chessboard](media/images/Screenshot22.png)
+
+![Gameplay](resources/screenshots/gameplay.png)
+
+---
+
+## **Contributions**
+Contributions are welcome! If you'd like to contribute, please fork the repository, make changes, and submit a pull request.
+
+---
+
+## **License**
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
+
+## **Acknowledgments**
+Special thanks to everyone who contributed to the development of this project.
