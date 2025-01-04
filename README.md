@@ -94,7 +94,7 @@ java -classpath path/to/client.jar:path/to/common.jar:path/to/gson.jar src.gui.C
 ---
 
 ## **Gameplay Video**
-![Gameplay](media/video/chess_gameplay.png)
+![Gameplay](media/video/chess_gameplay.mkv)
 ---
 
 
