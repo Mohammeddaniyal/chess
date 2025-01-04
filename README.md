@@ -84,7 +84,7 @@ java -classpath path/to/client.jar:path/to/common.jar:path/to/gson.jar src.gui.C
 ---
 
 ## **Gameplay Screenshots**
-![Chessboard](media/images/Screenshot22.png)
+![Chessboard](media/images/Screenshot (22).png)
 
 ![Gameplay](resources/screenshots/gameplay.png)
 
