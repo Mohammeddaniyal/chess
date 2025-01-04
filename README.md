@@ -94,7 +94,7 @@ java -classpath path/to/client.jar:path/to/common.jar:path/to/gson.jar src.gui.C
 ---
 
 ## **Gameplay Video**
-![Watch the video](media/images/chess_1.png)](https://drive.google.com/file/d/1WvdTe5DRsjf_34TPDAAonZoLQbTWYnUe/view?usp=drive_link)
+[![Watch the video](media/images/chess_1.png)](https://drive.google.com/file/d/1WvdTe5DRsjf_34TPDAAonZoLQbTWYnUe/view?usp=drive_link)
 ---
 
 
